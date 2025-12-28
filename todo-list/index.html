@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <!-- 设置字符编码为UTF-8，支持中文显示 -->
+    <meta charset="UTF-8">
+    <!-- 设置视口，确保在手机上正常显示 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的待办清单</title>
+    <style>
+        /* ========== 全局样式 ========== */
+        /* 重置浏览器默认样式，让页面在不同浏览器中显示一致 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box; /* 让元素的宽度包含内边距和边框 */
+        }
+
+        body {
+            /* 设置背景色为淡蓝绿色，清新风格 */
+            background-color: #e8f5f3;
+            /* 使用系统字体，在不同设备上显示更自然 */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            /* 设置内边距，让页面在手机上不会贴边 */
+            padding: 20px;
+            /* 设置最小高度为100vh（视口高度），让页面占满屏幕 */
+            min-height: 100vh;
+        }
+
+        /* ========== 容器样式 ========== */
+        /* 主容器：居中显示，最大宽度500px */
+        .container {
+            max-width: 500px;
+            margin: 0 auto; /* 水平居中 */
+            background-color: white; /* 白色背景，类似卡片效果 */
+            border-radius: 12px; /* 圆角，更现代 */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 轻微阴影，增加层次感 */
+            padding: 30px; /* 内边距 */
+        }
+
+        /* ========== 标题样式 ========== */
+        h1 {
+            color: #20b2aa; /* 蓝绿色文字，清新风格 */
+            text-align: center; /* 居中 */
+            margin-bottom: 30px; /* 下方间距 */
+            font-size: 28px; /* 字体大小 */
+            font-weight: 600; /* 字体粗细，稍微加粗 */
+        }
+
+        /* ========== 输入区域样式 ========== */
+        .input-section {
+            margin-bottom: 30px; /* 下方间距 */
+        }
+
+        /* 输入框和按钮的容器，使用flex布局让它们并排显示 */
+        .input-group {
+            display: flex; /* 弹性布局 */
+            gap: 10px; /* 元素之间的间距 */
+        }
+
+        /* 输入框样式 */
+        #taskInput {
+            flex: 1; /* 占据剩余空间 */
+            padding: 12px 16px; /* 内边距 */
+            border: 2px solid #e0e0e0; /* 边框颜色 */
+            border-radius: 8px; /* 圆角 */
+            font-size: 16px; /* 字体大小 */
+            outline: none; /* 去掉默认的聚焦边框 */
+            transition: border-color 0.3s; /* 边框颜色变化时的过渡效果 */
+        }
+
+        /* 输入框聚焦时的样式 */
+        #taskInput:focus {
+            border-color: #20b2aa; /* 聚焦时边框变为蓝绿色 */
+        }
+
+        /* 添加按钮样式 */
+        .btn-add {
+            padding: 16px 28px; /* 增加内边距，让按钮更高更容易点击 */
+            background-color: #00d4aa; /* 鲜艳的蓝绿色背景 */
+            color: white; /* 白色文字 */
+            border: none; /* 无边框 */
+            border-radius: 30px; /* 更大的圆角，更圆润 */
+            font-size: 16px; /* 字体大小 */
+            cursor: pointer; /* 鼠标悬停时显示手型 */
+            font-weight: 600; /* 字体粗细，稍微加粗 */
+            transition: all 0.3s; /* 所有属性变化时的过渡效果 */
+            box-shadow: 0 2px 8px rgba(0, 212, 170, 0.3); /* 添加阴影，更有层次感 */
+        }
+
+        /* 按钮悬停时的样式 */
+        .btn-add:hover {
+            background-color: #00b894; /* 悬停时背景色变深 */
+            box-shadow: 0 4px 12px rgba(0, 212, 170, 0.4); /* 悬停时阴影更明显 */
+            transform: translateY(-1px); /* 轻微上移，增加交互感 */
+        }
+
+        /* 按钮点击时的样式 */
+        .btn-add:active {
+            background-color: #00a085; /* 点击时背景色更深 */
+            transform: translateY(0); /* 恢复位置 */
+        }
+
+        /* ========== 任务列表样式 ========== */
+        /* 单个任务项的样式 */
+        .task-item {
+            display: flex; /* 弹性布局 */
+            align-items: center; /* 垂直居中 */
+            justify-content: space-between; /* 两端对齐 */
+            padding: 16px; /* 内边距 */
+            margin-bottom: 12px; /* 下方间距 */
+            background-color: #f0fdfa; /* 淡蓝绿色背景，更清新 */
+            border-radius: 8px; /* 圆角 */
+            border: 1px solid #b2f5ea; /* 蓝绿色边框 */
+            transition: all 0.2s; /* 所有属性变化时的过渡效果 */
+        }
+
+        /* 任务项悬停时的样式 */
+        .task-item:hover {
+            background-color: #e6fffa; /* 悬停时背景色更亮 */
+            box-shadow: 0 2px 4px rgba(32, 178, 170, 0.1); /* 蓝绿色阴影 */
+        }
+
+        /* 任务文本样式 */
+        .task-text {
+            flex: 1; /* 占据剩余空间 */
+            color: #333; /* 深灰色文字 */
+            font-size: 16px; /* 字体大小 */
+            margin-right: 12px; /* 右侧间距 */
+            transition: all 0.3s; /* 添加过渡效果，让状态切换更平滑 */
+        }
+
+        /* 任务完成状态的样式 */
+        .task-item.completed .task-text {
+            color: #999; /* 灰色文字 */
+            text-decoration: line-through; /* 添加删除线 */
+        }
+
+        /* 按钮组容器 */
+        .task-actions {
+            display: flex; /* 弹性布局 */
+            gap: 8px; /* 按钮之间的间距 */
+        }
+
+        /* 通用按钮样式（完成和删除按钮共用） */
+        .btn-task {
+            padding: 12px 20px; /* 增加内边距，让按钮更高更容易点击 */
+            border: none; /* 无边框 */
+            border-radius: 8px; /* 圆角 */
+            font-size: 14px; /* 字体大小 */
+            cursor: pointer; /* 鼠标悬停时显示手型 */
+            font-weight: 500; /* 字体粗细 */
+            transition: all 0.2s; /* 所有属性变化时的过渡效果 */
+        }
+
+        /* 完成按钮样式 */
+        .btn-complete {
+            background-color: #20b2aa; /* 蓝绿色背景，与整体配色一致 */
+            color: white; /* 白色文字 */
+        }
+
+        /* 完成按钮悬停时的样式 */
+        .btn-complete:hover {
+            background-color: #17a2b8; /* 悬停时背景色变深 */
+        }
+
+        /* 删除按钮样式 */
+        .btn-delete {
+            background-color: #ff4d4f; /* 红色背景 */
+            color: white; /* 白色文字 */
+        }
+
+        /* 删除按钮悬停时的样式 */
+        .btn-delete:hover {
+            background-color: #d9363e; /* 悬停时背景色变深 */
+        }
+
+        /* ========== 清空已完成按钮样式 ========== */
+        .clear-completed-section {
+            margin-top: 20px; /* 上方间距 */
+            text-align: center; /* 居中显示 */
+        }
+
+        .btn-clear-completed {
+            padding: 10px 24px; /* 内边距 */
+            background-color: #ff7875; /* 浅红色背景 */
+            color: white; /* 白色文字 */
+            border: none; /* 无边框 */
+            border-radius: 8px; /* 圆角 */
+            font-size: 14px; /* 字体大小 */
+            cursor: pointer; /* 鼠标悬停时显示手型 */
+            font-weight: 500; /* 字体粗细 */
+            transition: all 0.2s; /* 所有属性变化时的过渡效果 */
+        }
+
+        /* 清空已完成按钮悬停时的样式 */
+        .btn-clear-completed:hover {
+            background-color: #ff4d4f; /* 悬停时背景色变深 */
+        }
+
+        /* 清空已完成按钮点击时的样式 */
+        .btn-clear-completed:active {
+            background-color: #d9363e; /* 点击时背景色更深 */
+        }
+
+        /* ========== 响应式设计 ========== */
+        /* 当屏幕宽度小于等于375px时（手机屏幕）应用的样式 */
+        @media (max-width: 375px) {
+            body {
+                padding: 10px; /* 减少内边距 */
+            }
+
+            .container {
+                padding: 20px; /* 减少容器内边距 */
+            }
+
+            h1 {
+                font-size: 24px; /* 减小标题字体 */
+                margin-bottom: 20px; /* 减少下方间距 */
+            }
+
+            .input-group {
+                flex-direction: column; /* 输入框和按钮垂直排列 */
+            }
+
+            .btn-add {
+                width: 100%; /* 按钮占满宽度 */
+                padding: 16px 24px; /* 保持较高的按钮高度 */
+            }
+
+            .task-item {
+                flex-direction: column; /* 任务内容和按钮垂直排列 */
+                align-items: flex-start; /* 左对齐 */
+            }
+
+            .task-text {
+                margin-right: 0; /* 去掉右侧间距 */
+                margin-bottom: 12px; /* 增加下方间距 */
+            }
+
+            .task-actions {
+                width: 100%; /* 按钮组占满宽度 */
+            }
+
+            .btn-task {
+                flex: 1; /* 按钮平均分配空间 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 主容器：包含所有内容 -->
+    <div class="container">
+        <!-- 页面标题 -->
+        <h1>我的待办清单</h1>
+
+        <!-- 输入区域：用于添加新任务 -->
+        <div class="input-section">
+            <div class="input-group">
+                <!-- 输入框：用于输入任务内容 -->
+                <input type="text" id="taskInput" placeholder="输入新任务...">
+                <!-- 添加按钮：点击后添加任务（目前是静态页面，暂时没有功能） -->
+                <button class="btn-add">添加</button>
+            </div>
+        </div>
+
+        <!-- 任务列表区域：显示所有任务 -->
+        <div class="task-list">
+            <!-- 任务项1：完成项目报告 -->
+            <div class="task-item">
+                <!-- 任务文本 -->
+                <span class="task-text">完成项目报告</span>
+                <!-- 操作按钮组 -->
+                <div class="task-actions">
+                    <!-- 完成按钮 -->
+                    <button class="btn-task btn-complete">完成</button>
+                    <!-- 删除按钮 -->
+                    <button class="btn-task btn-delete">删除</button>
+                </div>
+            </div>
+
+            <!-- 任务项2：买牛奶 -->
+            <div class="task-item">
+                <span class="task-text">买牛奶</span>
+                <div class="task-actions">
+                    <button class="btn-task btn-complete">完成</button>
+                    <button class="btn-task btn-delete">删除</button>
+                </div>
+            </div>
+
+            <!-- 任务项3：给妈妈打电话 -->
+            <div class="task-item">
+                <span class="task-text">给妈妈打电话</span>
+                <div class="task-actions">
+                    <button class="btn-task btn-complete">完成</button>
+                    <button class="btn-task btn-delete">删除</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 清空已完成按钮：只在有已完成任务时显示 -->
+        <div class="clear-completed-section" id="clearCompletedSection" style="display: none;">
+            <button class="btn-clear-completed" id="clearCompletedBtn">清空已完成</button>
+        </div>
+    </div>
+
+    <!-- JavaScript 代码：实现添加任务功能 -->
+    <script>
+        // ========== 获取页面元素 ==========
+        // 获取输入框元素，用于获取用户输入的任务内容
+        const taskInput = document.getElementById('taskInput');
+        
+        // 获取添加按钮元素，用于监听点击事件
+        const addButton = document.querySelector('.btn-add');
+        
+        // 获取任务列表容器，用于添加新任务
+        const taskList = document.querySelector('.task-list');
+        
+        // 获取清空已完成按钮和容器元素
+        const clearCompletedBtn = document.getElementById('clearCompletedBtn');
+        const clearCompletedSection = document.getElementById('clearCompletedSection');
+
+        // ========== localStorage 数据管理 ==========
+        // localStorage 的键名，用于存储任务列表数据
+        // 使用 "todoList" 作为存储的 key 名
+        const STORAGE_KEY = 'todoList';
+
+        /**
+         * 从 localStorage 读取任务列表数据
+         * @returns {Array<Object>} 返回任务对象数组，每个对象包含 text 和 completed 属性
+         * 
+         * 数据格式示例：
+         * [
+         *   { text: "完成项目报告", completed: false },
+         *   { text: "买牛奶", completed: true }
+         * ]
+         */
+        function getTasksFromStorage() {
+            // 步骤1：从 localStorage 读取数据（localStorage 只能存储字符串）
+            const tasksJson = localStorage.getItem(STORAGE_KEY);
+            
+            // 步骤2：如果 localStorage 中没有数据（第一次使用或数据被清空），返回空数组
+            if (tasksJson === null) {
+                return [];
+            }
+            
+            // 步骤3：将 JSON 字符串解析为 JavaScript 对象/数组
+            try {
+                const tasks = JSON.parse(tasksJson);
+                
+                // 步骤4：兼容旧数据格式（如果之前保存的是字符串数组，转换为对象数组）
+                if (tasks.length > 0 && typeof tasks[0] === 'string') {
+                    return tasks.map(function(text) {
+                        return { text: text, completed: false };
+                    });
+                }
+                
+                // 步骤5：返回解析后的任务数组
+                return tasks;
+            } catch (error) {
+                // 如果 JSON 解析失败（数据格式错误），返回空数组
+                console.error('读取任务列表失败:', error);
+                return [];
+            }
+        }
+
+        /**
+         * 保存任务列表到 localStorage
+         * @param {Array<Object>} tasks - 任务对象数组，每个对象包含 text 和 completed 属性
+         * 
+         * 保存逻辑：
+         * 1. 将 JavaScript 数组转换为 JSON 字符串
+         * 2. 使用 localStorage.setItem() 保存到浏览器本地存储
+         * 3. 数据会持久化保存，即使关闭浏览器也不会丢失
+         */
+        function saveTasksToStorage(tasks) {
+            // 步骤1：将 JavaScript 数组转换为 JSON 字符串
+            // JSON.stringify() 可以将对象/数组转换为字符串格式
+            const tasksJson = JSON.stringify(tasks);
+            
+            // 步骤2：将 JSON 字符串保存到 localStorage
+            // localStorage.setItem(key, value) 用于保存数据
+            // key 是 'todoList'，value 是 JSON 字符串
+            localStorage.setItem(STORAGE_KEY, tasksJson);
+        }
+
+        /**
+         * 获取当前页面中所有任务的数据（包括文本和完成状态）
+         * @returns {Array<Object>} 返回任务对象数组，每个对象包含 text 和 completed 属性
+         */
+        function getAllTasksFromPage() {
+            const tasks = [];
+            // 获取页面中所有的任务项
+            const taskItems = taskList.querySelectorAll('.task-item');
+            
+            // 遍历每个任务项，提取任务文本和完成状态
+            taskItems.forEach(function(taskItem) {
+                const taskTextElement = taskItem.querySelector('.task-text');
+                if (taskTextElement) {
+                    // 检查任务项是否有 completed 类名来判断完成状态
+                    const isCompleted = taskItem.classList.contains('completed');
+                    tasks.push({
+                        text: taskTextElement.textContent,
+                        completed: isCompleted
+                    });
+                }
+            });
+            
+            return tasks;
+        }
+
+        // ========== 创建任务项的函数 ==========
+        /**
+         * 根据任务内容创建一个新的任务项DOM元素
+         * @param {string} taskText - 任务文本内容
+         * @param {boolean} isCompleted - 任务是否已完成，默认为 false
+         * @returns {HTMLElement} 返回创建好的任务项元素
+         */
+        function createTaskItem(taskText, isCompleted) {
+            // 如果 isCompleted 参数未提供，默认为 false
+            if (isCompleted === undefined) {
+                isCompleted = false;
+            }
+
+            // 创建任务项容器 div
+            const taskItem = document.createElement('div');
+            taskItem.className = 'task-item'; // 设置类名，应用CSS样式
+            
+            // 如果任务已完成，添加 completed 类名
+            if (isCompleted) {
+                taskItem.classList.add('completed');
+            }
+
+            // 创建任务文本元素
+            const taskTextElement = document.createElement('span');
+            taskTextElement.className = 'task-text';
+            taskTextElement.textContent = taskText; // 设置任务文本内容
+
+            // 创建按钮组容器
+            const taskActions = document.createElement('div');
+            taskActions.className = 'task-actions';
+
+            // 创建"完成"按钮
+            const completeButton = document.createElement('button');
+            completeButton.className = 'btn-task btn-complete';
+            // 根据完成状态设置按钮文字
+            completeButton.textContent = isCompleted ? '取消' : '完成';
+            
+            // 为完成按钮添加点击事件监听器
+            completeButton.addEventListener('click', function() {
+                // 点击完成按钮时，切换任务的完成状态
+                toggleTaskComplete(taskItem);
+            });
+
+            // 创建"删除"按钮
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'btn-task btn-delete';
+            deleteButton.textContent = '删除';
+            
+            // 为删除按钮添加点击事件监听器
+            deleteButton.addEventListener('click', function() {
+                // 点击删除按钮时，删除这个任务项
+                deleteTask(taskItem);
+            });
+
+            // 将完成和删除按钮添加到按钮组中
+            taskActions.appendChild(completeButton);
+            taskActions.appendChild(deleteButton);
+
+            // 将任务文本和按钮组添加到任务项中
+            taskItem.appendChild(taskTextElement);
+            taskItem.appendChild(taskActions);
+
+            // 返回创建好的任务项
+            return taskItem;
+        }
+
+        // ========== 重新排序任务列表的函数 ==========
+        /**
+         * 重新排序任务列表：未完成的任务在前，已完成的任务在后
+         */
+        function reorderTasks() {
+            // 获取所有任务项
+            const allTaskItems = Array.from(taskList.querySelectorAll('.task-item'));
+            
+            // 分离未完成和已完成的任务
+            const incompleteTasks = [];
+            const completedTasks = [];
+            
+            allTaskItems.forEach(function(taskItem) {
+                if (taskItem.classList.contains('completed')) {
+                    // 已完成的任务
+                    completedTasks.push(taskItem);
+                } else {
+                    // 未完成的任务
+                    incompleteTasks.push(taskItem);
+                }
+            });
+            
+            // 清空任务列表
+            taskList.innerHTML = '';
+            
+            // 先添加未完成的任务
+            incompleteTasks.forEach(function(taskItem) {
+                taskList.appendChild(taskItem);
+            });
+            
+            // 再添加已完成的任务（在底部）
+            completedTasks.forEach(function(taskItem) {
+                taskList.appendChild(taskItem);
+            });
+        }
+
+        // ========== 切换任务完成状态的函数 ==========
+        /**
+         * 切换任务的完成状态（完成 ↔ 未完成）
+         * @param {HTMLElement} taskItem - 要切换状态的任务项元素
+         */
+        function toggleTaskComplete(taskItem) {
+            // 检查任务项是否已经有 completed 类名
+            const isCurrentlyCompleted = taskItem.classList.contains('completed');
+            
+            // 获取完成按钮元素
+            const completeButton = taskItem.querySelector('.btn-complete');
+            
+            if (isCurrentlyCompleted) {
+                // 如果当前是完成状态，切换为未完成状态
+                taskItem.classList.remove('completed'); // 移除 completed 类名
+                completeButton.textContent = '完成'; // 按钮文字改为"完成"
+            } else {
+                // 如果当前是未完成状态，切换为完成状态
+                taskItem.classList.add('completed'); // 添加 completed 类名
+                completeButton.textContent = '取消'; // 按钮文字改为"取消"
+            }
+            
+            // 切换状态后，重新排序任务列表（已完成的任务移到底部）
+            reorderTasks();
+            
+            // ========== 数据持久化：更新任务列表 ==========
+            // 步骤1：获取当前页面中所有任务的数据（包括更新后的完成状态）
+            const currentTasks = getAllTasksFromPage();
+            // 步骤2：将更新后的任务列表保存到 localStorage
+            // 这样即使刷新页面，任务的完成状态也会保持
+            saveTasksToStorage(currentTasks);
+            
+            // 切换状态后，更新清空已完成按钮的显示状态
+            updateClearCompletedButton();
+        }
+
+        // ========== 删除任务的函数 ==========
+        /**
+         * 删除指定的任务项
+         * @param {HTMLElement} taskItem - 要删除的任务项元素
+         * 
+         * 数据持久化说明：
+         * - 删除任务后，会自动更新 localStorage
+         * - 这样刷新页面后，删除操作会保持（任务不会恢复）
+         */
+        function deleteTask(taskItem) {
+            // 从任务列表中移除这个任务项
+            // remove() 方法会从DOM中删除该元素
+            taskItem.remove();
+            
+            // ========== 数据持久化：更新任务列表 ==========
+            // 步骤1：获取当前页面中所有任务的数据（删除后的最新状态）
+            const currentTasks = getAllTasksFromPage();
+            // 步骤2：将更新后的任务列表保存到 localStorage
+            // 这样即使刷新页面，删除操作也会保持
+            saveTasksToStorage(currentTasks);
+            
+            // 删除任务后，更新清空已完成按钮的显示状态
+            updateClearCompletedButton();
+        }
+
+        // ========== 清空已完成任务的函数 ==========
+        /**
+         * 删除所有已完成的任务
+         * 
+         * 数据持久化说明：
+         * - 清空已完成任务后，会自动更新 localStorage
+         * - 这样刷新页面后，清空操作会保持（已完成的任务不会恢复）
+         */
+        function clearCompletedTasks() {
+            // 获取所有已完成的任务项
+            const completedTasks = taskList.querySelectorAll('.task-item.completed');
+            
+            // 遍历并删除每个已完成的任务
+            completedTasks.forEach(function(taskItem) {
+                taskItem.remove();
+            });
+            
+            // ========== 数据持久化：更新任务列表 ==========
+            // 步骤1：获取当前页面中所有任务的数据（清空后的最新状态）
+            const currentTasks = getAllTasksFromPage();
+            // 步骤2：将更新后的任务列表保存到 localStorage
+            // 这样即使刷新页面，清空操作也会保持
+            saveTasksToStorage(currentTasks);
+            
+            // 清空完成后，更新按钮的显示状态（应该隐藏，因为没有已完成任务了）
+            updateClearCompletedButton();
+        }
+
+        // ========== 更新清空已完成按钮显示状态的函数 ==========
+        /**
+         * 根据是否有已完成任务，显示或隐藏清空已完成按钮
+         */
+        function updateClearCompletedButton() {
+            // 检查是否有已完成的任务
+            const hasCompletedTasks = taskList.querySelector('.task-item.completed') !== null;
+            
+            // 如果有已完成的任务，显示按钮；否则隐藏按钮
+            if (hasCompletedTasks) {
+                clearCompletedSection.style.display = 'block';
+            } else {
+                clearCompletedSection.style.display = 'none';
+            }
+        }
+
+        // ========== 添加任务的函数 ==========
+        /**
+         * 添加新任务到任务列表中
+         * 
+         * 数据持久化说明：
+         * - 添加任务后，会自动保存到 localStorage
+         * - 这样刷新页面后，新添加的任务不会丢失
+         */
+        function addTask() {
+            // 获取输入框的值，并去除首尾空格
+            const taskText = taskInput.value.trim();
+
+            // 验证：如果输入框为空，不添加任务
+            if (taskText === '') {
+                // 可以在这里添加提示，比如让输入框闪烁一下
+                // 或者显示提示信息（这里先简单处理，直接返回）
+                return;
+            }
+
+            // 创建新的任务项（新任务默认为未完成状态）
+            const newTaskItem = createTaskItem(taskText, false);
+
+            // 找到第一个已完成的任务（如果有的话）
+            const firstCompletedTask = taskList.querySelector('.task-item.completed');
+            
+            if (firstCompletedTask) {
+                // 如果有已完成的任务，在第一个已完成任务之前插入新任务
+                // 这样新任务会出现在未完成任务区域的底部，已完成任务之前
+                taskList.insertBefore(newTaskItem, firstCompletedTask);
+            } else {
+                // 如果没有已完成的任务，将新任务添加到列表最前面
+                // 使用 insertBefore 在第一个子元素之前插入，如果没有子元素则添加到末尾
+                const firstTask = taskList.firstChild;
+                if (firstTask) {
+                    taskList.insertBefore(newTaskItem, firstTask);
+                } else {
+                    taskList.appendChild(newTaskItem);
+                }
+            }
+
+            // 添加成功后，重新排序任务列表（确保未完成的任务在前）
+            // 注意：由于新任务已经插入到正确位置，这里主要是为了确保整体顺序正确
+            reorderTasks();
+
+            // ========== 数据持久化：保存任务列表 ==========
+            // 步骤1：获取当前页面中所有任务的数据（包括文本和完成状态）
+            const currentTasks = getAllTasksFromPage();
+            // 步骤2：将任务列表保存到 localStorage
+            // 这样即使刷新页面，新添加的任务也不会丢失
+            saveTasksToStorage(currentTasks);
+
+            // 添加成功后，清空输入框
+            taskInput.value = '';
+
+            // 可选：让输入框重新获得焦点，方便继续添加任务
+            taskInput.focus();
+        }
+
+        // ========== 事件监听 ==========
+        // 监听添加按钮的点击事件
+        addButton.addEventListener('click', function() {
+            addTask();
+        });
+
+        // 可选功能：按回车键也可以添加任务（提升用户体验）
+        taskInput.addEventListener('keypress', function(event) {
+            // 如果按下的是回车键（Enter键的keyCode是13）
+            if (event.key === 'Enter' || event.keyCode === 13) {
+                addTask();
+            }
+        });
+
+        // 监听清空已完成按钮的点击事件
+        clearCompletedBtn.addEventListener('click', function() {
+            clearCompletedTasks();
+        });
+
+        // ========== 页面加载时初始化任务列表 ==========
+        /**
+         * 从 localStorage 加载任务列表并显示在页面上
+         * 
+         * 加载逻辑：
+         * 1. 从 localStorage 读取之前保存的任务数据
+         * 2. 如果有保存的数据，用它来初始化任务列表
+         * 3. 如果没有保存的数据（第一次使用），显示空列表
+         */
+        function loadTasksFromStorage() {
+            // 步骤1：从 localStorage 读取保存的任务列表
+            const savedTasks = getTasksFromStorage();
+            
+            // 步骤2：清空当前页面中的任务列表（包括HTML中的默认示例任务）
+            taskList.innerHTML = '';
+            
+            // 步骤3：如果有保存的任务数据，用它来初始化任务列表
+            if (savedTasks.length > 0) {
+                // 遍历保存的任务，创建任务项并添加到页面
+                savedTasks.forEach(function(task) {
+                    // task 可能是对象 {text, completed} 或字符串（兼容旧数据格式）
+                    const taskText = typeof task === 'string' ? task : task.text;
+                    const isCompleted = typeof task === 'string' ? false : task.completed;
+                    
+                    // 创建任务项DOM元素
+                    const taskItem = createTaskItem(taskText, isCompleted);
+                    // 将任务项添加到任务列表中
+                    taskList.appendChild(taskItem);
+                });
+                
+                // 加载完成后，重新排序任务列表（确保已完成的任务在底部）
+                reorderTasks();
+                
+                // 加载完成后，更新清空已完成按钮的显示状态
+                updateClearCompletedButton();
+            } else {
+                // 步骤4：如果没有保存的数据（第一次使用），显示空列表
+                // 不需要做任何操作，taskList.innerHTML 已经是空的了
+                
+                // 更新清空已完成按钮的显示状态（应该隐藏，因为没有任务）
+                updateClearCompletedButton();
+            }
+        }
+
+        // 页面加载完成后，从 localStorage 加载任务列表
+        loadTasksFromStorage();
+    </script>
+</body>
+</html>
